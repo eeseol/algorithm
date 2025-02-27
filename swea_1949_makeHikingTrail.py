@@ -22,8 +22,6 @@ def dfs(y, x, depth = 0, flag = 0):
                         
     visited[y][x] = False
 
-
-
 T = int(input())
 for test_case in range(1, T + 1):
     N, K = list(map(int, input().split()))
