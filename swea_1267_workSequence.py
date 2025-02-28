@@ -2,12 +2,19 @@ from collections import deque
 
 def dfs(index):
     
-    for i in data[index]:
-        if visited[i] == True:
-            continue
-        dfs(i)
-    de.append(index)
-    visited[index] = True
+    if visited[index] == False:
+        if len(data[index]) == 0:
+            de.appendleft(index)
+            visited[index] = True
+            return
+
+        for i in data[index]:
+            if visited[i] == True:
+                continue
+            dfs(i)
+        de.appendleft(index)
+        visited[index] = True
+    
 
 
 for test_case in range(1, 11):
@@ -26,3 +33,4 @@ for test_case in range(1, 11):
         dfs(i)
 
     print(*de)
+
