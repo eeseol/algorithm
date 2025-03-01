@@ -1,20 +1,19 @@
 from collections import deque
 
 def dfs(index):
-    
-    if visited[index] == False:
-        if len(data[index]) == 0:
-            de.appendleft(index)
-            visited[index] = True
-            return
+    global de
+    global visited
 
-        for i in data[index]:
-            if visited[i] == True:
-                continue
-            dfs(i)
+    if len(data[index]) == 0:
         de.appendleft(index)
         visited[index] = True
-    
+
+    else:
+        for new_index in data[index]:
+            if visited[new_index] == False:
+                dfs(new_index)
+        de.appendleft(index)
+        visited[index] = True
 
 
 for test_case in range(1, 11):
@@ -22,15 +21,18 @@ for test_case in range(1, 11):
 
     data = [[] for _ in range(V+1)]
     de = deque()
-    visited = [[False] for _ in range(V+1)]
+    visited = [False for _ in range(V+1)]
 
     temp = list(map(int, input().split()))
 
+    # 간선 정보 data 변수에 장 부모, 자식식
     for i in range(0, len(temp), 2):
         data[temp[i]].append(temp[i+1])
 
     for i in range(1, V+1):
-        dfs(i)
+        if visited[i] == False:
+            dfs(i)
 
+    print(f'#{test_case}', end=" ")
     print(*de)
 
