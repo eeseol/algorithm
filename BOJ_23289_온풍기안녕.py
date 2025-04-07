@@ -1,25 +1,62 @@
 from pprint import pprint
+def check_wall_for_control(d, r, c, new_r, new_c):
+    for wall in walls:
+        x, y, t = wall
+        if d == 1 and t == 1 and x == r and y == c:  # 오른쪽
+            return False
+        if d == 2 and t == 1 and x == r and y == new_c:  # 왼쪽
+            return False
+        if d == 3 and t == 0 and x == r and y == c:  # 위
+            return False
+        if d == 4 and t == 0 and x == new_r and y == c:  # 아래
+            return False
+    return True
 
 def check_wall(d, r, c, new_r, new_c):
     global walls
 
-    for wall in walls:
-        if wall[2] == 0:
-            if d == 1:
-                if wall[0] == new_r and wall[1] == new_c:
-                    return False
-            if d == 2:
-                if wall[0] == new_r and wall[1] == new_c + 1:
-                    return False
-        else:
-            if d == 3:
-                if wall[0] == new_r and wall[1] == new_c:
-                    return False
-            if d == 4:
-                if wall[0] == new_r - 1 and wall[1] == c:
-                    return False
+    # 위/아래 벽 여부 확인 함수
+    def is_wall_between(a, b, t):
+        for wall in walls:
+            if wall == [a, b, t]:
+                return True
+        return False
 
-    return True
+    # 바람 방향별 조건 설정
+    if d == 1:  # 오른쪽
+        if new_r == r - 1 and new_c == c + 1:
+            return not is_wall_between(r, c, 0) and not is_wall_between(r - 1, c, 1)
+        elif new_r == r and new_c == c + 1:
+            return not is_wall_between(r, c, 1)
+        elif new_r == r + 1 and new_c == c + 1:
+            return not is_wall_between(r, c, 0) and not is_wall_between(r + 1, c, 1)
+
+    elif d == 2:  # 왼쪽
+        if new_r == r - 1 and new_c == c - 1:
+            return not is_wall_between(r, c, 0) and not is_wall_between(r - 1, c - 1, 1)
+        elif new_r == r and new_c == c - 1:
+            return not is_wall_between(r, c - 1, 1)
+        elif new_r == r + 1 and new_c == c - 1:
+            return not is_wall_between(r, c, 0) and not is_wall_between(r + 1, c - 1, 1)
+
+    elif d == 3:  # 위쪽
+        if new_r == r - 1 and new_c == c - 1:
+            return not is_wall_between(r, c, 1) and not is_wall_between(r, c - 1, 0)
+        elif new_r == r - 1 and new_c == c:
+            return not is_wall_between(r, c, 0)
+        elif new_r == r - 1 and new_c == c + 1:
+            return not is_wall_between(r, c, 1) and not is_wall_between(r, c + 1, 0)
+
+    elif d == 4:  # 아래쪽
+        if new_r == r + 1 and new_c == c - 1:
+            return not is_wall_between(r + 1, c, 1) and not is_wall_between(r + 1, c - 1, 0)
+        elif new_r == r + 1 and new_c == c:
+            return not is_wall_between(r + 1, c, 0)
+        elif new_r == r + 1 and new_c == c + 1:
+            return not is_wall_between(r + 1, c, 1) and not is_wall_between(r + 1, c + 1, 0)
+
+    return False
+
 
 def wind():
     global real_map
@@ -71,19 +108,26 @@ def control_temperature():
 
     for r in range(R):
         for c in range(C):
-            cnt =
+            # 온도있는 칸 발견! 온도 퍼트려보자
             if real_map[r][c] != 0:
-                update_data = real_map[r][c]
+                temp_result = 0
+                # 델타 레츠기릿릿
                 for k in range(1, 5):
                     new_r = r + dr[k]
                     new_c = c + dc[k]
-
+                    # 범위 확인
                     if not (0 <= new_r < R and 0 <= new_c < C):
                         continue
-
-
-
-
+                    # 확산 이니까 높은곳에서 낮은곳으로 가야겠죠
+                    if real_map[r][c] > real_map[new_r][new_c]:
+                        # true면 벽 없다는 뜻임.
+                        if check_wall_for_control(k, r, c, new_r, new_c) == False:
+                            continue
+                        update_number = (real_map[r][c] - real_map[new_r][new_c])//4
+                        temp_map[new_r][new_c] += update_number
+                        temp_result += update_number
+                temp_map[r][c] += real_map[r][c] - temp_result
+    real_map = [row[:] for row in temp_map]
 
 def cold_border():
     global real_map
@@ -101,7 +145,11 @@ def cold_border():
             real_map[j][C-1] -= 1
 
 def testing_checker():
-    pass
+
+    for check in checker:
+        if real_map[check[0]][check[1]] < K:
+            return False
+    return True
 
 R, C, K = map(int, input().split())
 
@@ -125,24 +173,21 @@ for _ in range(W):
     a, b, c = map(int, input().split())
     walls.append([a-1, b-1, c])
 
-wind()
+while True:
 
-# while True:
-#
-#     # 1. 집에 있는 모든 온풍기에서 바람이 한 번 나옴
-#     wind()
-#     # 2. 온도가 조절됨
-#     control_temperature()
-#     # 3. 온도가 1 이상인 가장 바깥쪽 칸의 온도가 1씩 감소
-#     cold_border()
-#     # 4. 초콜릿을 하나 먹는다.
-#     cnt += 1
-#     # 조사하는 모든 칸의 온도가 K 이상이 되었는지 검사. 모든 칸의 온도가 K이상이면 테스트를 중단하고, 아니면 1부터 다시 시작한다.
-#     # if testing_checker():
-#     #     break
-#
-#     if cnt > 100:
-#         cnt = 101
-#         break
-#
-# print(cnt)
+    # 1. 집에 있는 모든 온풍기에서 바람이 한 번 나옴
+    wind()
+    # 2. 온도가 조절됨
+    control_temperature()
+    # 3. 온도가 1 이상인 가장 바깥쪽 칸의 온도가 1씩 감소
+    cold_border()
+    # 4. 초콜릿을 하나 먹는다.
+    cnt += 1
+    # 조사하는 모든 칸의 온도가 K 이상이 되었는지 검사. 모든 칸의 온도가 K이상이면 테스트를 중단하고, 아니면 1부터 다시 시작한다.
+    if testing_checker():
+        break
+    if cnt > 100:
+        cnt = 101
+        break
+
+print(cnt)
